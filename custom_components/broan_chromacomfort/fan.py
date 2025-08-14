@@ -6,8 +6,7 @@ from homeassistant.components.fan import FanEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN
-from .bluetooth import connect_to_device
+from .bluetooth import turn_on_fan, turn_off_fan
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,14 +32,12 @@ class BroanFan(FanEntity):
 
     async def async_turn_on(self, **kwargs):
         _LOGGER.info("Turning on ChromaComfort fan")
-        success = await connect_to_device(self._mac)
-        if success:
-            self._is_on = True
-            self.async_write_ha_state()
+        await turn_on_fan(self._mac)
+        self._is_on = True
+        self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs):
         _LOGGER.info("Turning off ChromaComfort fan")
-        success = await connect_to_device(self._mac)
-        if success:
-            self._is_on = False
-            self.async_write_ha_state()
+        await turn_off_fan(self._mac)
+        self._is_on = False
+        self.async_write_ha_state()
