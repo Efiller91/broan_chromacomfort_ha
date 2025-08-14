@@ -3,19 +3,25 @@ from __future__ import annotations
 
 import logging
 from homeassistant.components.light import LightEntity
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
+
 from .const import DOMAIN
+from .bluetooth import connect_to_device
 
 _LOGGER = logging.getLogger(__name__)
 
-async def async_setup_entry(hass, entry, async_add_entities):
-    async_add_entities([BroanLight()])
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities):
+    """Set up Broan ChromaComfort light."""
+    async_add_entities([BroanLight(entry.data["device_mac"])])
 
 
 class BroanLight(LightEntity):
     """Representation of the ChromaComfort light."""
 
-    def __init__(self):
+    def __init__(self, mac: str):
         self._is_on = False
+        self._mac = mac
 
     @property
     def name(self):
@@ -27,10 +33,14 @@ class BroanLight(LightEntity):
 
     async def async_turn_on(self, **kwargs):
         _LOGGER.info("Turning on ChromaComfort light")
-        self._is_on = True
-        self.async_write_ha_state()
+        success = await connect_to_device(self._mac)
+        if success:
+            self._is_on = True
+            self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs):
         _LOGGER.info("Turning off ChromaComfort light")
-        self._is_on = False
-        self.async_write_ha_state()
+        success = await connect_to_device(self._mac)
+        if success:
+            self._is_on = False
+            self.async_write_ha_state()
