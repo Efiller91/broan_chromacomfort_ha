@@ -9,15 +9,16 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
+async def async_setup(hass: HomeAssistant, config: dict):
+    """Set up Broan ChromaComfort from YAML (not used)."""
+    return True
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Broan ChromaComfort from a config entry."""
     hass.data.setdefault(DOMAIN, {})
 
-    # Normally here you would initialize your Bluetooth connection
     _LOGGER.info("Broan ChromaComfort setup complete for entry: %s", entry.entry_id)
     return True
-
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
