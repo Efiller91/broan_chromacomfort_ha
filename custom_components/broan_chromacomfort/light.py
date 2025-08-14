@@ -6,8 +6,7 @@ from homeassistant.components.light import LightEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN
-from .bluetooth import connect_to_device
+from .bluetooth import turn_on_light, turn_off_light
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,14 +32,12 @@ class BroanLight(LightEntity):
 
     async def async_turn_on(self, **kwargs):
         _LOGGER.info("Turning on ChromaComfort light")
-        success = await connect_to_device(self._mac)
-        if success:
-            self._is_on = True
-            self.async_write_ha_state()
+        await turn_on_light(self._mac)
+        self._is_on = True
+        self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs):
         _LOGGER.info("Turning off ChromaComfort light")
-        success = await connect_to_device(self._mac)
-        if success:
-            self._is_on = False
-            self.async_write_ha_state()
+        await turn_off_light(self._mac)
+        self._is_on = False
+        self.async_write_ha_state()
