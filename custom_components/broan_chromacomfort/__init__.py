@@ -1,15 +1,12 @@
-"""Broan ChromaComfort integration with BLE communication."""
+"""Broan ChromaComfort integration using manual MAC entry."""
 import logging
 from bleak import BleakClient
 from homeassistant.core import HomeAssistant
-
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-SERVICE_UUID = "0000fff0-0000-1000-8000-00805f9b34fb"
 WRITE_CHAR_UUID = "0000fff3-0000-1000-8000-00805f9b34fb"
-NOTIFY_CHAR_UUID = "0000fff4-0000-1000-8000-00805f9b34fb"
 
 class ChromaComfortBLE:
     """BLE helper to send commands to the fan/light device."""
