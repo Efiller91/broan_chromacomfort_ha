@@ -54,22 +54,12 @@ async def async_setup_entry(hass: HomeAssistant, entry):
     hass.data[DOMAIN]["ble_client"] = ChromaComfortBLE(device_mac)
 
     # Forward setup to platforms
-    hass.async_create_task(
-        hass.config_entries.async_forward_entry_setup(entry, "fan")
-    )
-    hass.async_create_task(
-        hass.config_entries.async_forward_entry_setup(entry, "light")
-    )
-    hass.async_create_task(
-        hass.config_entries.async_forward_entry_setup(entry, "switch")
-    )
+    await hass.config_entries.async_forward_entry_setups(entry, ["fan", "light", "switch"])
     return True
 
 async def async_unload_entry(hass: HomeAssistant, entry):
     """Unload a config entry."""
-    await hass.config_entries.async_forward_entry_unload(entry, "fan")
-    await hass.config_entries.async_forward_entry_unload(entry, "light")
-    await hass.config_entries.async_forward_entry_unload(entry, "switch")
+    await hass.config_entries.async_forward_entry_unload(entry, ["fan", "light", "switch"])
     ble_client: ChromaComfortBLE = hass.data[DOMAIN].get("ble_client")
     if ble_client:
         await ble_client.disconnect()
