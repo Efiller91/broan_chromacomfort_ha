@@ -1,31 +1,35 @@
-"""Fan platform for Broan ChromaComfort."""
-from homeassistant.components.fan import FanEntity
-from homeassistant.helpers.entity import Entity
-from .const import DOMAIN
-from .__init__ import ChromaComfortBLE
+"""ChromaComfort fan platform."""
 
-async def async_setup_entry(hass, entry, async_add_entities):
-    """Set up the fan entity."""
-    ble_client: ChromaComfortBLE = hass.data[DOMAIN]["ble_client"]
-    async_add_entities([ChromaComfortFan(ble_client)])
+from homeassistant.components.fan import FanEntity, FanEntityFeature
 
 class ChromaComfortFan(FanEntity):
-    """Representation of the fan."""
+    """ChromaComfort Fan entity."""
 
-    def __init__(self, ble_client: ChromaComfortBLE):
-        self._ble_client = ble_client
+    def __init__(self, ble_client):
+        self._ble = ble_client
         self._is_on = False
+        self._speed = None
+
+    @property
+    def supported_features(self):
+        return FanEntityFeature.SET_SPEED
 
     @property
     def is_on(self):
         return self._is_on
 
-    async def async_turn_on(self, **kwargs):
-        await self._ble_client.send_cmd(1)  # fan ON
+    async def async_turn_on(self, speed=None, **kwargs):
+        await self._ble.send_cmd(cmd_type=1)  # 1 = fan on
         self._is_on = True
         self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs):
-        await self._ble_client.send_cmd(2)  # fan OFF
+        await self._ble.send_cmd(cmd_type=2)  # 2 = fan off
         self._is_on = False
+        self.async_write_ha_state()
+
+    async def async_set_speed(self, speed: str):
+        speed_map = {"low": 10, "medium": 30, "high": 60}
+        await self._ble.send_cmd(cmd_type=0, dimmer=speed_map.get(speed, 30))
+        self._speed = speed
         self.async_write_ha_state()
