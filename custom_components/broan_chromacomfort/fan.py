@@ -1,43 +1,29 @@
-"""Fan entity for Broan ChromaComfort."""
-from __future__ import annotations
+"""Fan platform for Broan ChromaComfort."""
+from homeassistant.components.fan import FanEntity, SUPPORT_PRESET_MODE
+from homeassistant.helpers.entity import Entity
 
-import logging
-from homeassistant.components.fan import FanEntity
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from .const import DOMAIN
 
-from .bluetooth import turn_on_fan, turn_off_fan
+async def async_setup_entry(hass, entry, async_add_entities):
+    """Set up the fan entity."""
+    device_mac = entry.data["device_mac"]
+    async_add_entities([ChromaComfortFan(device_mac)])
 
-_LOGGER = logging.getLogger(__name__)
+class ChromaComfortFan(FanEntity):
+    """Representation of the Broan ChromaComfort Fan."""
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities):
-    """Set up Broan ChromaComfort fan."""
-    async_add_entities([BroanFan(entry.data["device_mac"])])
-
-
-class BroanFan(FanEntity):
-    """Representation of the ChromaComfort fan."""
-
-    def __init__(self, mac: str):
-        self._is_on = False
+    def __init__(self, mac):
         self._mac = mac
-
-    @property
-    def name(self):
-        return "Broan ChromaComfort Fan"
+        self._is_on = False
 
     @property
     def is_on(self):
         return self._is_on
 
     async def async_turn_on(self, **kwargs):
-        _LOGGER.info("Turning on ChromaComfort fan")
-        await turn_on_fan(self._mac)
         self._is_on = True
-        self.async_write_ha_state()
+        # TODO: Send BLE command to turn fan on
 
     async def async_turn_off(self, **kwargs):
-        _LOGGER.info("Turning off ChromaComfort fan")
-        await turn_off_fan(self._mac)
         self._is_on = False
-        self.async_write_ha_state()
+        # TODO: Send BLE command to turn fan off
