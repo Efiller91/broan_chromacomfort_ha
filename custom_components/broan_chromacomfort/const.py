@@ -1,4 +1,2 @@
-"""Constants for ChromaComfort integration."""
-
 DOMAIN = "broan_chromacomfort"
-PLATFORMS = ["fan", "light", "switch"]
+DEFAULT_POLL_INTERVAL = 5
