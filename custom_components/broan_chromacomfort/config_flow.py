@@ -12,7 +12,7 @@ class ChromaComfortConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(self, user_input=None):
         errors = {}
-        if user_input:
+        if user_input is not None:
             device_mac = user_input.get("device_mac")
             if not re.fullmatch(r"([0-9A-Fa-f]{12}|([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2})", device_mac):
                 errors["device_mac"] = "invalid_mac"
