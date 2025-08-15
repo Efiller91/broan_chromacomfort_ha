@@ -1,18 +1,12 @@
-"""Wall RGB switch for Broan ChromaComfort."""
+"""ChromaComfort switch platform."""
+
 from homeassistant.components.switch import SwitchEntity
-from .const import DOMAIN
-from .__init__ import ChromaComfortBLE
 
-async def async_setup_entry(hass, entry, async_add_entities):
-    """Set up the wall RGB switch entity."""
-    ble_client: ChromaComfortBLE = hass.data[DOMAIN]["ble_client"]
-    async_add_entities([ChromaComfortWallRGB(ble_client)])
+class ChromaComfortSwitch(SwitchEntity):
+    """ChromaComfort Switch entity."""
 
-class ChromaComfortWallRGB(SwitchEntity):
-    """Representation of the wall RGB LED switch."""
-
-    def __init__(self, ble_client: ChromaComfortBLE):
-        self._ble_client = ble_client
+    def __init__(self, ble_client):
+        self._ble = ble_client
         self._is_on = False
 
     @property
@@ -20,11 +14,11 @@ class ChromaComfortWallRGB(SwitchEntity):
         return self._is_on
 
     async def async_turn_on(self, **kwargs):
-        await self._ble_client.send_cmd(5)  # Turn on wall RGB
+        await self._ble.turn_on_wall_rgb()
         self._is_on = True
         self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs):
-        await self._ble_client.send_cmd(6)  # Turn off wall RGB
+        await self._ble.turn_off_wall_rgb()
         self._is_on = False
         self.async_write_ha_state()
