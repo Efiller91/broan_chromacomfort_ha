@@ -1,19 +1,18 @@
 """Light platform for Broan ChromaComfort."""
 from homeassistant.components.light import LightEntity, SUPPORT_BRIGHTNESS, SUPPORT_COLOR
-from homeassistant.helpers.entity import Entity
-
 from .const import DOMAIN
+from .__init__ import ChromaComfortBLE
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the light entity."""
-    device_mac = entry.data["device_mac"]
-    async_add_entities([ChromaComfortLight(device_mac)])
+    ble_client: ChromaComfortBLE = hass.data[DOMAIN]["ble_client"]
+    async_add_entities([ChromaComfortLight(ble_client)])
 
 class ChromaComfortLight(LightEntity):
-    """Representation of the Broan ChromaComfort Light."""
+    """Representation of the light."""
 
-    def __init__(self, mac):
-        self._mac = mac
+    def __init__(self, ble_client: ChromaComfortBLE):
+        self._ble_client = ble_client
         self._is_on = False
         self._brightness = 255
         self._rgb_color = (255, 255, 255)
@@ -36,12 +35,15 @@ class ChromaComfortLight(LightEntity):
 
     async def async_turn_on(self, **kwargs):
         self._is_on = True
-        if "brightness" in kwargs:
-            self._brightness = kwargs["brightness"]
-        if "rgb_color" in kwargs:
-            self._rgb_color = kwargs["rgb_color"]
-        # TODO: Send BLE command to turn light on / set brightness / color
+        brightness = kwargs.get("brightness", self._brightness)
+        color = kwargs.get("rgb_color", self._rgb_color)
+        self._brightness = brightness
+        self._rgb_color = color
+        # Send BLE commands
+        await self._ble_client.send_cmd(11, *color, dimmer=int(brightness/255*100))
+        self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs):
         self._is_on = False
-        # TODO: Send BLE command to turn light off
+        await self._ble_client.send_cmd(12)  # deactivate favorite color
+        self.async_write_ha_state()
