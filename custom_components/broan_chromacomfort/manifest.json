@@ -1,11 +1,12 @@
 {
   "domain": "broan_chromacomfort",
-  "name": "ChromaComfort",
-  "version": "1.1.0",
+  "name": "Broan ChromaComfort",
+  "documentation": "https://github.com/Efiller91/broan_chromacomfort_ha",
   "requirements": ["bleak>=0.20.0"],
   "dependencies": [],
   "codeowners": ["@Efiller91"],
+  "version": "1.0.0",
   "config_flow": true,
-  "documentation": "https://github.com/Efiller91/broan_chromacomfort_ha",
-  "iot_class": "local_push"
+  "iot_class": "local_push",
+  "homeassistant": "2024.12.0"
 }
