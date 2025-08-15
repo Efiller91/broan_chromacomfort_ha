@@ -1,21 +1,25 @@
 """Light platform for ChromaComfort."""
 
-from homeassistant.components.light import LightEntity, ColorMode
+from homeassistant.components.light import LightEntity
 from .const import DOMAIN
+from .bluetooth import (
+    light_on_cmd,
+    light_off_cmd,
+    activate_fav_color_cmd,
+    deactivate_fav_color_cmd,
+    set_rgb_cmd,
+)
+
+async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
+    ble_client = hass.data[DOMAIN]["ble_client"]
+    async_add_entities([ChromaComfortLight(ble_client)])
 
 class ChromaComfortLight(LightEntity):
-    """Representation of the main light."""
-
-    def __init__(self, hass, ble_client):
+    def __init__(self, ble_client):
         self._ble = ble_client
         self._is_on = False
         self._brightness = 255
         self._rgb = (255, 255, 255)
-        self._name = "ChromaComfort Light"
-
-    @property
-    def name(self):
-        return self._name
 
     @property
     def is_on(self):
@@ -26,24 +30,24 @@ class ChromaComfortLight(LightEntity):
         return self._brightness
 
     @property
-    def color_mode(self):
-        return ColorMode.RGB
-
-    @property
     def rgb_color(self):
         return self._rgb
 
     async def async_turn_on(self, **kwargs):
+        rgb = kwargs.get("rgb_color")
+        brightness = kwargs.get("brightness", 255)
+
+        if rgb:
+            self._rgb = rgb
+            await self._ble.send_command(set_rgb_cmd(*rgb))
+            await self._ble.send_command(activate_fav_color_cmd(brightness))
+        else:
+            await self._ble.send_command(light_on_cmd())
+
         self._is_on = True
-        if "brightness" in kwargs:
-            self._brightness = kwargs["brightness"]
-        if "rgb_color" in kwargs:
-            self._rgb = kwargs["rgb_color"]
-            await self._ble.set_rgb(*self._rgb)
-        await self._ble.set_light(self._is_on, self._brightness)
-        self.async_write_ha_state()
+        self._brightness = brightness
 
     async def async_turn_off(self, **kwargs):
+        await self._ble.send_command(deactivate_fav_color_cmd())
+        await self._ble.send_command(light_off_cmd())
         self._is_on = False
-        await self._ble.set_light(False)
-        self.async_write_ha_state()
