@@ -22,3 +22,9 @@ class ChromaComfortBLE:
         if self.client.is_connected:
             CHARACTERISTIC_UUID = "0000fff3-0000-1000-8000-00805f9b34fb"
             await self.client.write_gatt_char(CHARACTERISTIC_UUID, cmd)
+
+    async def refresh_state(self):
+        """Request the current state from the fan/light/RGB."""
+        # Send a "status request" packet (mimicking the ESP32 status update)
+        STATUS_REQUEST_CMD = bytes([58, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        await self.send_command(STATUS_REQUEST_CMD)
