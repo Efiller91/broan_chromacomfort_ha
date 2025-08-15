@@ -1,37 +1,22 @@
-"""Bluetooth commands for ChromaComfort."""
+"""Bluetooth helper for ChromaComfort."""
 
-def _build_packet(cmd_type: int, r=0, g=0, b=0, brightness=0) -> bytes:
-    packet = [58] + [0]*15
-    packet[-1] = cmd_type
-    packet[10] = r
-    packet[11] = g
-    packet[12] = b
-    packet[13] = brightness
-    return bytes(packet)
+# This file can contain helper functions for parsing or sending BLE packets.
+# For now, we just import the byte commands from ESP32 firmware.
 
-def fan_on_cmd() -> bytes:
-    return _build_packet(1)
+def fan_on_bytes():
+    return bytes([58, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
 
-def fan_off_cmd() -> bytes:
-    return _build_packet(2)
+def fan_off_bytes():
+    return bytes([58, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0])
 
-def light_on_cmd() -> bytes:
-    return _build_packet(3)
+def light_on_bytes():
+    return bytes([58, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0])
 
-def light_off_cmd() -> bytes:
-    return _build_packet(4)
+def light_off_bytes():
+    return bytes([58, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0])
 
-def rgb_on_cmd() -> bytes:
-    return _build_packet(5)
+def rgb_on_bytes(r, g, b, brightness):
+    return bytes([58, 0, 0, 0, 0, r, g, b, 5, brightness, 0, 0, 0, 0, 0, 0, 0])
 
-def rgb_off_cmd() -> bytes:
-    return _build_packet(6)
-
-def activate_fav_color_cmd(brightness: int) -> bytes:
-    return _build_packet(11, brightness=brightness)
-
-def deactivate_fav_color_cmd() -> bytes:
-    return _build_packet(12)
-
-def set_rgb_cmd(r: int, g: int, b: int) -> bytes:
-    return _build_packet(13, r, g, b)
+def rgb_off_bytes():
+    return bytes([58, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0])
