@@ -8,6 +8,7 @@ from .const import DOMAIN
 from .fan import ChromaComfortFan
 from .light import ChromaComfortLight
 from .switch import ChromaComfortSwitch
+from .ble import ChromaComfortBLE  # <- Make sure ble.py exists with this class
 
 async def async_setup(hass: HomeAssistant, config: ConfigType):
     """Set up the integration."""
@@ -16,13 +17,15 @@ async def async_setup(hass: HomeAssistant, config: ConfigType):
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up from a config entry."""
-    mac = entry.data["device_mac"]
+    mac = entry.data.get("device_mac")
+    if not mac:
+        return False
 
-    # BLE client or controller class
+    # Initialize BLE client
     ble_client = ChromaComfortBLE(mac)
     hass.data[DOMAIN]["ble_client"] = ble_client
 
-    # Forward entry setup for each platform
+    # Forward setup to each platform
     await hass.config_entries.async_forward_entry_setups(entry, ["fan", "light", "switch"])
 
     return True
