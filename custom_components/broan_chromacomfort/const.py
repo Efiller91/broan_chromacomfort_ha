@@ -1,4 +1,3 @@
-"""Constants for the Broan ChromaComfort integration."""
+"""Constants for ChromaComfort."""
 
 DOMAIN = "broan_chromacomfort"
-CONF_MAC = "device_mac"
