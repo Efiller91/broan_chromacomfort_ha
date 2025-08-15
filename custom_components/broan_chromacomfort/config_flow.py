@@ -1,7 +1,10 @@
 """Config flow for Broan ChromaComfort integration."""
+
 import voluptuous as vol
 from homeassistant import config_entries
 from .const import DOMAIN
+
+import re
 
 class ChromaComfortConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for ChromaComfort."""
@@ -14,18 +17,15 @@ class ChromaComfortConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             device_mac = user_input.get("device_mac")
-            # Basic validation: MAC should be 12 hex digits or 6 pairs separated by ":"
-            import re
-            if not re.fullmatch(r"([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}", device_mac):
+            # Allow colon-separated or plain 12-digit hex
+            if not re.fullmatch(r"([0-9A-Fa-f]{12}|([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2})", device_mac):
                 errors["device_mac"] = "invalid_mac"
             else:
-                # Create the entry
                 return self.async_create_entry(
-                    title=f"ChromaComfort {device_mac[-6:]}",  # last 3 bytes for title
+                    title=f"ChromaComfort {device_mac[-6:]}",  # last 3 bytes
                     data={"device_mac": device_mac}
                 )
 
-        # Show the form
         data_schema = vol.Schema(
             {
                 vol.Required("device_mac"): str,
