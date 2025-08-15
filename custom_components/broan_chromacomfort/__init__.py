@@ -1,26 +1,28 @@
-"""Broan ChromaComfort integration for Home Assistant."""
-from __future__ import annotations
-
-import logging
+"""Broan ChromaComfort integration."""
 from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntry
-
 from .const import DOMAIN
 
-_LOGGER = logging.getLogger(__name__)
-
 async def async_setup(hass: HomeAssistant, config: dict):
-    """Set up Broan ChromaComfort from YAML (not used)."""
+    """Set up the integration via configuration.yaml (optional)."""
     return True
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Broan ChromaComfort from a config entry."""
+async def async_setup_entry(hass: HomeAssistant, entry):
+    """Set up the integration from config flow entry."""
     hass.data.setdefault(DOMAIN, {})
+    device_mac = entry.data["device_mac"]
+    hass.data[DOMAIN]["device_mac"] = device_mac
 
-    _LOGGER.info("Broan ChromaComfort setup complete for entry: %s", entry.entry_id)
+    # Register platforms
+    hass.async_create_task(
+        hass.config_entries.async_forward_entry_setup(entry, "fan")
+    )
+    hass.async_create_task(
+        hass.config_entries.async_forward_entry_setup(entry, "light")
+    )
     return True
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry):
     """Unload a config entry."""
-    _LOGGER.info("Unloading Broan ChromaComfort integration")
+    await hass.config_entries.async_forward_entry_unload(entry, "fan")
+    await hass.config_entries.async_forward_entry_unload(entry, "light")
     return True
