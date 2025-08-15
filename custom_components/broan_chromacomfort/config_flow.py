@@ -4,7 +4,6 @@ from __future__ import annotations
 import logging
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
 
@@ -23,10 +22,9 @@ class BroanChromaComfortConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(self, user_input=None):
         """Handle the initial step of the config flow."""
-
-        # If user clicked Refresh, re-run scan
+        # If user clicked refresh button, restart scan
         if user_input is not None:
-            if "refresh_scan" in user_input:
+            if user_input.get("refresh"):
                 return await self.async_step_user()
             # User selected a device
             return self.async_create_entry(
@@ -41,13 +39,13 @@ class BroanChromaComfortConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if options:
             schema = vol.Schema({
                 vol.Required("device_mac"): vol.In(options),
-                vol.Optional("refresh_scan", default=False): bool
+                vol.Optional("refresh", default=False): bool
             })
             description = {"options": ", ".join(options.values())}
         else:
             # No devices found — only show refresh button
             schema = vol.Schema({
-                vol.Optional("refresh_scan", default=False): bool
+                vol.Optional("refresh", default=False): bool
             })
             description = {"error": "No devices found nearby."}
 
