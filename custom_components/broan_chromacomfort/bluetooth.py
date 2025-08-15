@@ -1,22 +1,22 @@
-"""Bluetooth helper for ChromaComfort."""
+"""Bluetooth commands wrapper (optional helper)."""
 
-# This file can contain helper functions for parsing or sending BLE packets.
-# For now, we just import the byte commands from ESP32 firmware.
+# For now all BLE commands go directly via ble.py send_command
+# You can add helpers to build the bytes per ESP32 commands
 
-def fan_on_bytes():
-    return bytes([58, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
+def fan_on_command() -> bytes:
+    return bytes([58, 0, 0, 0, 1] + [0]*12)
 
-def fan_off_bytes():
-    return bytes([58, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0])
+def fan_off_command() -> bytes:
+    return bytes([58, 0, 0, 0, 2] + [0]*12)
 
-def light_on_bytes():
-    return bytes([58, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0])
+def light_on_command() -> bytes:
+    return bytes([58, 0, 0, 0, 3] + [0]*12)
 
-def light_off_bytes():
-    return bytes([58, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0])
+def light_off_command() -> bytes:
+    return bytes([58, 0, 0, 0, 4] + [0]*12)
 
-def rgb_on_bytes(r, g, b, brightness):
-    return bytes([58, 0, 0, 0, 0, r, g, b, 5, brightness, 0, 0, 0, 0, 0, 0, 0])
+def rgb_on_command() -> bytes:
+    return bytes([58, 0, 0, 0, 5] + [0]*12)
 
-def rgb_off_bytes():
-    return bytes([58, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0])
+def rgb_off_command() -> bytes:
+    return bytes([58, 0, 0, 0, 6] + [0]*12)
