@@ -1,43 +1,25 @@
-"""Fan platform for ChromaComfort integration."""
-
-from homeassistant.components.fan import FanEntity, SUPPORT_SET_SPEED
-from .ble import ChromaComfortBLE
+from homeassistant.components.fan import FanEntity, FanEntityFeature
+from . import DOMAIN
 
 class ChromaComfortFan(FanEntity):
-    """Representation of the ChromaComfort Fan."""
-
-    def __init__(self, ble: ChromaComfortBLE):
-        self._ble = ble
+    def __init__(self, ble_client):
+        self._ble = ble_client
         self._is_on = False
-        self._speed = None
-        self._attr_supported_features = SUPPORT_SET_SPEED
 
     @property
     def is_on(self):
         return self._is_on
 
-    @property
-    def speed(self):
-        return self._speed
-
-    @property
-    def speed_list(self):
-        return ["low", "medium", "high"]
-
-    async def async_turn_on(self, speed=None, **kwargs):
-        if speed:
-            self._speed = speed
+    async def async_turn_on(self, **kwargs):
+        await self._ble.send_command(b'\x3A\x00\x00\x00\x01' + b'\x00'*12)
         self._is_on = True
-        CMD = bytes([58, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
-        await self._ble.send_command(CMD)
         self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs):
+        await self._ble.send_command(b'\x3A\x00\x00\x00\x02' + b'\x00'*12)
         self._is_on = False
-        CMD = bytes([58, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0])
-        await self._ble.send_command(CMD)
         self.async_write_ha_state()
 
-    async def async_refresh_state(self):
-        """Fetch latest state from BLE device."""
-        await self._ble.refresh_state()
+    @property
+    def supported_features(self):
+        return FanEntityFeature.ON_OFF
