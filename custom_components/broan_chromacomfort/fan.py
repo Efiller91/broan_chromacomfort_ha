@@ -1,37 +1,43 @@
-"""Fan platform for ChromaComfort."""
+"""Fan platform for ChromaComfort integration."""
 
-from homeassistant.components.fan import FanEntity
-from .const import DOMAIN
-from .bluetooth import fan_on_cmd, fan_off_cmd
-
-SPEEDS = ["low", "medium", "high"]
-
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
-    ble_client = hass.data[DOMAIN]["ble_client"]
-    async_add_entities([ChromaComfortFan(ble_client)])
+from homeassistant.components.fan import FanEntity, SUPPORT_SET_SPEED
+from .ble import ChromaComfortBLE
 
 class ChromaComfortFan(FanEntity):
-    def __init__(self, ble_client):
-        self._ble = ble_client
+    """Representation of the ChromaComfort Fan."""
+
+    def __init__(self, ble: ChromaComfortBLE):
+        self._ble = ble
         self._is_on = False
         self._speed = None
+        self._attr_supported_features = SUPPORT_SET_SPEED
 
     @property
     def is_on(self):
         return self._is_on
-
-    async def async_turn_on(self, speed=None, **kwargs):
-        await self._ble.send_command(fan_on_cmd())
-        self._is_on = True
-
-    async def async_turn_off(self, **kwargs):
-        await self._ble.send_command(fan_off_cmd())
-        self._is_on = False
 
     @property
     def speed(self):
         return self._speed
 
     @property
-    def speed_count(self):
-        return len(SPEEDS)
+    def speed_list(self):
+        return ["low", "medium", "high"]
+
+    async def async_turn_on(self, speed=None, **kwargs):
+        if speed:
+            self._speed = speed
+        self._is_on = True
+        CMD = bytes([58, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
+        await self._ble.send_command(CMD)
+        self.async_write_ha_state()
+
+    async def async_turn_off(self, **kwargs):
+        self._is_on = False
+        CMD = bytes([58, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0])
+        await self._ble.send_command(CMD)
+        self.async_write_ha_state()
+
+    async def async_refresh_state(self):
+        """Fetch latest state from BLE device."""
+        await self._ble.refresh_state()
