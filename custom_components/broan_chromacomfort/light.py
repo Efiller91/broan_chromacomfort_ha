@@ -1,21 +1,15 @@
-"""Light platform for Broan ChromaComfort."""
-from homeassistant.components.light import LightEntity, SUPPORT_BRIGHTNESS, SUPPORT_COLOR
-from .const import DOMAIN
-from .__init__ import ChromaComfortBLE
+"""ChromaComfort light platform."""
 
-async def async_setup_entry(hass, entry, async_add_entities):
-    """Set up the light entity."""
-    ble_client: ChromaComfortBLE = hass.data[DOMAIN]["ble_client"]
-    async_add_entities([ChromaComfortLight(ble_client)])
+from homeassistant.components.light import LightEntity, LightEntityFeature, ColorMode
 
 class ChromaComfortLight(LightEntity):
-    """Representation of the light."""
+    """ChromaComfort Light entity."""
 
-    def __init__(self, ble_client: ChromaComfortBLE):
-        self._ble_client = ble_client
+    def __init__(self, ble_client):
+        self._ble = ble_client
         self._is_on = False
-        self._brightness = 255
-        self._rgb_color = (255, 255, 255)
+        self._brightness = 0
+        self._rgb_color = (0, 0, 0)
 
     @property
     def is_on(self):
@@ -30,20 +24,28 @@ class ChromaComfortLight(LightEntity):
         return self._rgb_color
 
     @property
-    def supported_features(self):
-        return SUPPORT_BRIGHTNESS | SUPPORT_COLOR
+    def supported_color_modes(self):
+        return {ColorMode.RGB, ColorMode.BRIGHTNESS}
+
+    @property
+    def color_mode(self):
+        return ColorMode.RGB if self._rgb_color != (0, 0, 0) else ColorMode.BRIGHTNESS
 
     async def async_turn_on(self, **kwargs):
-        self._is_on = True
         brightness = kwargs.get("brightness", self._brightness)
-        color = kwargs.get("rgb_color", self._rgb_color)
-        self._brightness = brightness
-        self._rgb_color = color
-        # Send BLE commands
-        await self._ble_client.send_cmd(11, *color, dimmer=int(brightness/255*100))
+        rgb = kwargs.get("rgb_color", self._rgb_color)
+
+        if rgb:
+            await self._ble.set_rgb(*rgb)
+            self._rgb_color = rgb
+        else:
+            await self._ble.activate_fav_color(brightness)
+            self._brightness = brightness
+
+        self._is_on = True
         self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs):
+        await self._ble.deactivate_fav_color()
         self._is_on = False
-        await self._ble_client.send_cmd(12)  # deactivate favorite color
         self.async_write_ha_state()
