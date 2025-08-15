@@ -1,19 +1,19 @@
 """Fan platform for Broan ChromaComfort."""
-from homeassistant.components.fan import FanEntity, SUPPORT_PRESET_MODE
+from homeassistant.components.fan import FanEntity
 from homeassistant.helpers.entity import Entity
-
 from .const import DOMAIN
+from .__init__ import ChromaComfortBLE
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the fan entity."""
-    device_mac = entry.data["device_mac"]
-    async_add_entities([ChromaComfortFan(device_mac)])
+    ble_client: ChromaComfortBLE = hass.data[DOMAIN]["ble_client"]
+    async_add_entities([ChromaComfortFan(ble_client)])
 
 class ChromaComfortFan(FanEntity):
-    """Representation of the Broan ChromaComfort Fan."""
+    """Representation of the fan."""
 
-    def __init__(self, mac):
-        self._mac = mac
+    def __init__(self, ble_client: ChromaComfortBLE):
+        self._ble_client = ble_client
         self._is_on = False
 
     @property
@@ -21,9 +21,11 @@ class ChromaComfortFan(FanEntity):
         return self._is_on
 
     async def async_turn_on(self, **kwargs):
+        await self._ble_client.send_cmd(1)  # fan ON
         self._is_on = True
-        # TODO: Send BLE command to turn fan on
+        self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs):
+        await self._ble_client.send_cmd(2)  # fan OFF
         self._is_on = False
-        # TODO: Send BLE command to turn fan off
+        self.async_write_ha_state()
