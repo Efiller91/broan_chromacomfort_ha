@@ -1,50 +1,37 @@
-"""Bluetooth helper for Broan ChromaComfort."""
-import logging
-from bleak import BleakClient, BleakError
+"""Bluetooth commands for ChromaComfort."""
 
-_LOGGER = logging.getLogger(__name__)
+def _build_packet(cmd_type: int, r=0, g=0, b=0, brightness=0) -> bytes:
+    packet = [58] + [0]*15
+    packet[-1] = cmd_type
+    packet[10] = r
+    packet[11] = g
+    packet[12] = b
+    packet[13] = brightness
+    return bytes(packet)
 
-# Real UUIDs from ESP32 reverse-engineered project
-LIGHT_CHAR_UUID = "0000fff3-0000-1000-8000-00805f9b34fb"
-FAN_CHAR_UUID   = "0000fff2-0000-1000-8000-00805f9b34fb"
+def fan_on_cmd() -> bytes:
+    return _build_packet(1)
 
-async def connect_to_device(mac_address: str) -> bool:
-    """Test connection to the Bluetooth device."""
-    try:
-        async with BleakClient(mac_address) as client:
-            if client.is_connected:
-                _LOGGER.info("Connected to %s", mac_address)
-                return True
-            else:
-                _LOGGER.error("Failed to connect to %s", mac_address)
-                return False
-    except BleakError as e:
-        _LOGGER.error("Bluetooth connection failed: %s", e)
-        return False
+def fan_off_cmd() -> bytes:
+    return _build_packet(2)
 
-async def turn_on_light(mac_address: str):
-    """Turn on the ChromaComfort light."""
-    try:
-        async with BleakClient(mac_address) as client:
-            await client.write_gatt_char(LIGHT_CHAR_UUID, bytearray([0x01]))
-            _LOGGER.info("Light turned on for %s", mac_address)
-    except BleakError as e:
-        _LOGGER.error("Failed to turn on light: %s", e)
+def light_on_cmd() -> bytes:
+    return _build_packet(3)
 
-async def turn_off_light(mac_address: str):
-    """Turn off the ChromaComfort light."""
-    try:
-        async with BleakClient(mac_address) as client:
-            await client.write_gatt_char(LIGHT_CHAR_UUID, bytearray([0x00]))
-            _LOGGER.info("Light turned off for %s", mac_address)
-    except BleakError as e:
-        _LOGGER.error("Failed to turn off light: %s", e)
+def light_off_cmd() -> bytes:
+    return _build_packet(4)
 
-async def turn_on_fan(mac_address: str):
-    """Turn on the ChromaComfort fan."""
-    try:
-        async with BleakClient(mac_address) as client:
-            await client.write_gatt_char(FAN_CHAR_UUID, bytearray([0x01]))
-            _LOGGER.info("Fan turned on for %s", mac_address)
-    except BleakError as e:
-        _LOGGER.er_
+def rgb_on_cmd() -> bytes:
+    return _build_packet(5)
+
+def rgb_off_cmd() -> bytes:
+    return _build_packet(6)
+
+def activate_fav_color_cmd(brightness: int) -> bytes:
+    return _build_packet(11, brightness=brightness)
+
+def deactivate_fav_color_cmd() -> bytes:
+    return _build_packet(12)
+
+def set_rgb_cmd(r: int, g: int, b: int) -> bytes:
+    return _build_packet(13, r, g, b)
