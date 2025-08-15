@@ -2,6 +2,7 @@
 import logging
 from homeassistant import config_entries
 from homeassistant.helpers import selector
+from homeassistant.core import callback
 
 from bleak import BleakScanner
 from .const import DOMAIN
@@ -16,12 +17,19 @@ class ChromaComfortFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(self, user_input=None):
         """Handle the initial step."""
         errors = {}
-        devices = []
 
-        # Scan for BLE devices
-        found_devices = await BleakScanner.discover(timeout=3.0)
+        # Run BLE scan in executor to avoid blocking
+        try:
+            found_devices = await self.hass.async_add_executor_job(
+                lambda: BleakScanner.discover(timeout=3.0)
+            )
+        except Exception as e:
+            _LOGGER.error("Error scanning for devices: %s", e)
+            found_devices = []
+
+        devices = []
         for d in found_devices:
-            if "ChromaComfort" in d.name:
+            if "ChromaComfort" in (d.name or ""):
                 devices.append({"label": f"{d.name} ({d.address})", "value": d.address})
 
         if user_input is not None:
