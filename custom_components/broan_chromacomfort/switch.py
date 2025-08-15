@@ -1,30 +1,26 @@
-"""Switch platform for ChromaComfort Wall RGB."""
+"""Switch platform for ChromaComfort."""
 
 from homeassistant.components.switch import SwitchEntity
 from .const import DOMAIN
+from .bluetooth import rgb_on_cmd, rgb_off_cmd
+
+async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
+    ble_client = hass.data[DOMAIN]["ble_client"]
+    async_add_entities([ChromaComfortSwitch(ble_client)])
 
 class ChromaComfortSwitch(SwitchEntity):
-    """Representation of the wall RGB switch."""
-
-    def __init__(self, hass, ble_client):
+    def __init__(self, ble_client):
         self._ble = ble_client
         self._is_on = False
-        self._name = "ChromaComfort Wall RGB"
-
-    @property
-    def name(self):
-        return self._name
 
     @property
     def is_on(self):
         return self._is_on
 
     async def async_turn_on(self, **kwargs):
-        await self._ble.turn_wall_rgb(True)
+        await self._ble.send_command(rgb_on_cmd())
         self._is_on = True
-        self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs):
-        await self._ble.turn_wall_rgb(False)
+        await self._ble.send_command(rgb_off_cmd())
         self._is_on = False
-        self.async_write_ha_state()
