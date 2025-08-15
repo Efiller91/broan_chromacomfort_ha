@@ -1,2 +1,3 @@
-"""Constants for the Broan ChromaComfort integration."""
+"""Constants for Broan ChromaComfort integration."""
+
 DOMAIN = "broan_chromacomfort"
